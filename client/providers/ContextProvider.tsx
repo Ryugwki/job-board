@@ -3,6 +3,7 @@
 import React from "react";
 import { GlobalContextProvider } from "../context/globalContext";
 import { JobsContextProvider } from "../context/jobsContext";
+import { CompanyContextProvider } from "../context/companyContext";
 
 interface Props {
   children: React.ReactNode;
@@ -11,7 +12,9 @@ interface Props {
 function ContextProvider({ children }: Props) {
   return (
     <GlobalContextProvider>
-      <JobsContextProvider>{children}</JobsContextProvider>
+      <JobsContextProvider>
+        <CompanyContextProvider>{children}</CompanyContextProvider>
+      </JobsContextProvider>
     </GlobalContextProvider>
   );
 }

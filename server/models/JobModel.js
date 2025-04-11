@@ -44,6 +44,12 @@ const JobSchema = new mongoose.Schema(
         required: true,
       },
     ],
+    experience: [
+      {
+        type: String,
+      },
+    ],
+
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

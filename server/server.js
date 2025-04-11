@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import connect from "./db/connect.js";
-import asyncHanlder from "express-async-handler";
+import asyncHandler from "express-async-handler";
 import fs from "fs";
 import User from "./models/UserModel.js";
 dotenv.config();
@@ -18,6 +18,9 @@ const config = {
   baseURL: process.env.BASE_URL,
   clientID: process.env.CLIENT_ID,
   issuerBaseURL: process.env.ISSUER_BASE_URL,
+  routes: {
+    postLogoutRedirect: process.env.CLIENT_URL,
+  },
 };
 //Config
 app.use(
@@ -26,40 +29,68 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
-
+app.use((req, res, next) => {
+  if (req.headers["content-length"] > 10 * 1024 * 1024) {
+    // Reject requests larger than 10MB
+    return res.status(413).json({ message: "File size exceeds limit" });
+  }
+  next();
+});
 app.use(auth(config));
 
 //Function to check if user exists
-const ensureUserInDB = asyncHanlder(async (user) => {
+// Fix typo in function name: asyncHanlder → asyncHandler
+const ensureUserInDB = asyncHandler(async (user) => {
   try {
+    console.log("Checking if user exists in DB:", user.sub);
     const existingUser = await User.findOne({ auth0Id: user.sub });
+
     if (!existingUser) {
+      console.log("Creating new user in database");
+      // Fix role field to be an array as defined in your schema
       const newUser = new User({
         auth0Id: user.sub,
         name: user.name,
         email: user.email,
-        role: "jobseeker",
+        role: ["job seeker"], // Change from string to array to match schema
         profilePicture: user.picture,
+        isAdmin: false,
       });
-      await newUser.save();
-      console.log("User added to database", user);
+
+      // Save and log any errors in detail
+      try {
+        await newUser.save();
+        console.log("User successfully added to database:", newUser._id);
+      } catch (saveError) {
+        console.error("Database save error:", saveError);
+        console.error("Validation errors:", saveError.errors);
+        throw saveError; // Re-throw to propagate the error
+      }
     } else {
-      console.log("User already exists in database", existingUser);
+      console.log("User already exists in database:", existingUser._id);
     }
   } catch (error) {
-    console.log("Error checking or adding user", error.message);
+    console.error("Error in ensureUserInDB:", error.message);
+    console.error("Full error:", error);
+    throw error; // Propagate the error
   }
 });
 
 app.get("/", async (req, res) => {
   if (req.oidc.isAuthenticated()) {
-    //Check if auth0 user exists in database
-    await ensureUserInDB(req.oidc.user);
-    //Redirect to client home page
-    return res.redirect(process.env.CLIENT_URL);
+    try {
+      //Check if auth0 user exists in database
+      await ensureUserInDB(req.oidc.user);
+      //Redirect to client home page
+      return res.redirect(process.env.CLIENT_URL);
+    } catch (error) {
+      console.error("Error ensuring user in DB:", error);
+      // Still redirect but log the error
+      return res.redirect(process.env.CLIENT_URL);
+    }
   } else {
     return res.send("Logged out");
   }

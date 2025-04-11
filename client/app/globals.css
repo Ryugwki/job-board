@@ -118,3 +118,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  background: #f0f5fa;
+}
+
+.custom-quill-editor .ql-toolbar {
+  @apply rounded-t-lg;
+  border: 1px solid #e2e8f0;
+}
+.custom-quill-editor .ql-container {
+  @apply rounded-bl-lg rounded-br-lg;
+  border: 1px solid #e2e8f0;
+}
+.custom-quill-editor .ql-editor {
+  min-height: 400px;
+  max-height: 900px;
+  border: 2px solid transparent;
+}
+.custom-quill-editor .ql-editor::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-quill-editor .ql-editor::-webkit-scrollbar-thumb {
+  background-color: #2f42c2;
+  border-radius: 6px;
+}
+.custom-quill-editor .ql-editor::-webkit-scrollbar-track {
+  background-color: #cbd5e0;
+}

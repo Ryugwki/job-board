@@ -31,10 +31,14 @@ const userSchema = new mongoose.Schema(
     role: [
       {
         type: String,
-        enum: ["jobseeker", "recruiter"],
-        default: "jobseeker",
+        enum: ["job seeker", "recruiter"],
+        default: "job seeker",
       },
     ],
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
     resume: {
       type: String,
     },

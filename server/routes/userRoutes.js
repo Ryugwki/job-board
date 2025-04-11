@@ -1,5 +1,10 @@
 import express from "express";
-import { getUserProfile } from "../controller/userController.js";
+import {
+  getUserProfile,
+  updateUserProfile,
+  setUserAdminStatus,
+  getAllUsers,
+} from "../controller/userController.js";
 
 const router = express.Router();
 
@@ -13,7 +18,8 @@ router.get("/check-auth", (req, res) => {
     return res.status(200).json(false);
   }
 });
-
+router.get("/users", getAllUsers);
 router.get("/user/:id", getUserProfile);
-
+router.put("/user/:id", updateUserProfile);
+router.put("/user/admin/:id", setUserAdminStatus);
 export default router;
